@@ -14,7 +14,7 @@ import glob
 from collections import defaultdict
 import time
 import gc
-
+from torch.optim.lr_scheduler import CosineAnnealingLR
 warnings.filterwarnings('ignore')
 
 # 自动选择设备，优先使用CPU以节省GPU内存
@@ -151,7 +151,7 @@ class EnhancedIncrementalAnalyzer:
         # 保存配置
         self.save_count = 0
         
-    def save_sampled_weights(self, test_loader, epoch, iteration, sample_fraction=0.1, force_save=False):
+    def save_sampled_weights(self, test_loader, epoch, iteration, sample_fraction=1., force_save=False):
         """保存部分样本的权重，支持强制保存"""
         self.model.eval()
         
@@ -244,7 +244,8 @@ class EnhancedIncrementalAnalyzer:
 
 # 增强版训练函数，支持不同epoch的不同保存频率
 def enhanced_training(model, train_loader, test_loader, epochs=2, lr=0.001):
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
     criterion = nn.CrossEntropyLoss()
     
     # 初始化分析器
@@ -254,8 +255,11 @@ def enhanced_training(model, train_loader, test_loader, epochs=2, lr=0.001):
     
     # 动态保存频率：第一个epoch保存更多次
     save_frequencies = {
-        1: max(1, total_iterations // 8),  # 第一个epoch保存8次
-        2: max(1, total_iterations // 4),  # 第二个epoch保存4次
+        1: max(1, total_iterations // 2),  # 第一个epoch保存2次
+        2: max(1, total_iterations // 2),  # 第二个epoch保存2次
+        3: max(1, total_iterations // 2),
+        4: max(1, total_iterations // 2),
+        5: max(1, total_iterations // 2),
     }
     
     best_acc = 0
@@ -309,7 +313,7 @@ def enhanced_training(model, train_loader, test_loader, epochs=2, lr=0.001):
                 
                 # 保存10%的测试样本
                 saved, failed = analyzer.save_sampled_weights(
-                    test_loader, epoch+1, batch_idx, sample_fraction=0.1
+                    test_loader, epoch+1, batch_idx, sample_fraction=1.
                 )
                 
                 # 立即清理内存
@@ -344,10 +348,12 @@ def enhanced_training(model, train_loader, test_loader, epochs=2, lr=0.001):
             best_acc = test_accuracy
             torch.save(model.state_dict(), 'best_classifier.pth')
             print(f"新的最佳模型已保存，准确率: {best_acc:.2f}%")
+        
+        scheduler.step()
     
     # 训练结束时的最终保存
     print("\n训练完成，执行最终保存...")
-    analyzer.save_sampled_weights(test_loader, epochs, total_iterations, sample_fraction=0.1, force_save=True)
+    analyzer.save_sampled_weights(test_loader, epochs, total_iterations, sample_fraction=1., force_save=True)
     
     print(f"最佳测试准确率: {best_acc:.2f}%")
     
@@ -482,7 +488,7 @@ def main_enhanced_training(mode='classifier'):
     print("4. 开始增强训练...")
     accuracy, history = enhanced_training(
         model, train_loader, test_loader,
-        epochs=2, 
+        epochs=5, 
         lr=0.01
     )
     
