@@ -50,7 +50,7 @@ class EffectiveWeightVisualization:
         print(f"Found {len(time_points)} time points")
         return sorted(time_points)
     
-    def load_time_point_data(self, epoch, iteration, max_samples=1000):
+    def load_time_point_data(self, epoch, iteration, max_samples=10000):
         """Load samples for the given time point with sample limit"""
         dir_path = os.path.join(self.base_dir, f"epoch_{epoch:02d}_iter_{iteration:03d}")
         
@@ -105,7 +105,7 @@ class EffectiveWeightVisualization:
             'n_classes': len(np.unique(all_labels))
         }
     
-    def compute_dimensionality_reductions(self, weights_flat, labels, method='pca'):
+    def compute_dimensionality_reductions(self, weights_flat, labels, method='tsne'):
         """Compute dimensionality reduction"""
         n_samples = len(weights_flat)
         
@@ -176,7 +176,7 @@ class EffectiveWeightVisualization:
         
         print(f"Creating animations with {len(valid_time_data)} valid time points")
         
-        methods = ['pca', 'umap', 'tsne']
+        methods = ['tsne']#['pca', 'umap', 'tsne']
         
         for method in methods:
             print(f"\n=== Creating {method.upper()} animation ===")
@@ -356,7 +356,7 @@ class EffectiveWeightVisualization:
                 
                 if time_data is not None:
                     # Compute dimensionality reductions
-                    methods = ['pca', 'umap', 'tsne']
+                    methods = ['tsne']#['pca', 'umap', 'tsne']
                     reductions = {}
                     
                     for method in methods:
