@@ -186,7 +186,7 @@ class EnhancedIncrementalAnalyzer:
                     img_embed, mask1, mask2 = self.model.forward_with_masks(sample_images)
                     
                     # 使用修正的等效权重计算
-                    W_eff_batch = self.model.compute_effective_weight(mask1, mask2)
+                    W_eff_batch = self.model.compute_effective_weight_fast(mask1, mask2)
                     
                     for j in range(len(sample_images)):
                         sample_id = batch_idx * batch_size + sample_indices[j]
