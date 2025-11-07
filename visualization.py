@@ -460,13 +460,9 @@ def main():
         print("\nGenerated files:")
         animations_dir = os.path.join("incremental_weights", "animations")
         print(f"Location: {animations_dir}")
-        print("\nFor PCA, UMAP, and t-SNE:")
         print("  • [method]_evolution.gif - Complete animation")
         print("  • [method]_frames/ - All individual frames as PNG")
-        print("\nExample frame names:")
-        print("  • pca_epoch01_iter000.png")
-        print("  • umap_epoch02_iter234.png")
-        print("  • tsne_epoch02_iter936.png")
+
     else:
         print("\n✗ Analysis failed! Check the error messages above.")
 
